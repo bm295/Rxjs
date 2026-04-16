@@ -8,7 +8,7 @@
     <section class="menu card">
       <h2>Main menu</h2>
       <button type="button" class="feature-btn" (click)="openSwitchMapDemo()">
-        1. switchMap demo
+        switchMap
       </button>
     </section>
   } @else {
@@ -16,68 +16,128 @@
       <div>
         <h2>Operator: switchMap</h2>
         <p>
-          Every new source emission starts a fresh inner stream and cancels the previous one.
+          Each new typed value starts a fresh inner request and cancels the previous one.
         </p>
       </div>
       <div class="actions">
         <button type="button" (click)="runSwitchMapDemo()" [disabled]="running">
-          {{ running ? 'Running…' : 'Run demo' }}
+          {{ running ? 'Typing...' : 'Run demo' }}
         </button>
         <button type="button" (click)="resetDemo()">Reset</button>
         <button type="button" class="ghost" (click)="backToMenu()">Back to menu</button>
       </div>
     </section>
 
-    <section class="card board">
-      <div class="column">
-        <h3>Input stream (outer emissions)</h3>
-        <p class="caption">Each row wants to emit 6 inner balls.</p>
-        @for (row of streamRows; track trackById($index, row)) {
-          <div class="lane">
-            <span class="label">Source #{{ row.id }}</span>
-            <div class="balls">
-              @for (slot of ballSlots; track slot) {
-                <span class="ball planned">{{ slot }}</span>
-              }
-            </div>
-          </div>
-        }
+    <section class="card hero">
+      <div>
+        <p class="eyebrow">Typeahead simulation</p>
+        <h3>Search box: {{ typedTerm || '_' }}</h3>
+        <p class="caption">
+          The outer stream emits C, CO, COM, COMP, and keeps going until COMPLETED.
+        </p>
       </div>
 
-      <div class="column">
-        <h3>After switchMap</h3>
-        <p class="caption">Only the newest inner stream keeps flowing.</p>
-        @for (row of streamRows; track trackById($index, row)) {
-          <div class="lane">
-            <span class="label">Output #{{ row.id }}</span>
-            <div class="balls">
-              @for (slot of ballSlots; track slot) {
-                <span
-                  class="ball"
-                  [class.live]="slot <= row.emittedCount"
-                  [class.cut]="row.status === 'canceled' && slot > row.emittedCount"
-                >
-                  {{ slot }}
-                </span>
-              }
-            </div>
-            <span class="status" [class.canceled]="row.status === 'canceled'">
-              {{ row.status }}
-            </span>
-          </div>
+      <div class="letter-strip" aria-label="Typing target word">
+        @for (letter of demoLetters; track $index) {
+          <span class="letter" [class.typed]="$index < typedTerm.length">
+            {{ letter }}
+          </span>
         }
       </div>
     </section>
 
-    <section class="card log">
-      <h3>Emission log</h3>
-      <ul>
-        @for (event of outputEvents; track $index) {
-          <li>
-            t={{ event.atMs }}ms → outer {{ event.outerId }}, inner {{ event.innerIndex }}
-          </li>
+    <section class="board">
+      <section class="card column">
+        <h3>Outer stream: typing</h3>
+        <p class="caption">Every key press emits the latest input value.</p>
+
+        @if (typingEvents.length === 0) {
+          <p class="empty">Run the demo to emit C, CO, COM, and the rest of the word.</p>
+        } @else {
+          <ul class="event-list">
+            @for (event of typingEvents; track event.id) {
+              <li>
+                <span class="time">t={{ event.atMs }}ms</span>
+                <code>{{ event.term }}</code>
+              </li>
+            }
+          </ul>
         }
-      </ul>
+      </section>
+
+      <section class="card column">
+        <h3>Inner stream: requests</h3>
+        <p class="caption">switchMap keeps only the latest request alive.</p>
+
+        @if (requestRows.length === 0) {
+          <p class="empty">No inner request has been created yet.</p>
+        } @else {
+          <div class="request-list">
+            @for (request of requestRows; track request.id) {
+              <article
+                class="request-card"
+                [class.canceled]="request.status === 'canceled'"
+                [class.completed]="request.status === 'completed'"
+              >
+                <div class="request-head">
+                  <div>
+                    <p class="request-label">Request {{ request.id }}</p>
+                    <strong>{{ request.term }}</strong>
+                  </div>
+                  <span
+                    class="status-chip"
+                    [class.canceled]="request.status === 'canceled'"
+                    [class.completed]="request.status === 'completed'"
+                  >
+                    {{ request.status }}
+                  </span>
+                </div>
+
+                <div class="progress-track" aria-hidden="true">
+                  <span class="progress-fill" [style.width.%]="request.progressPercent"></span>
+                </div>
+
+                <p class="request-note">{{ request.note }}</p>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    </section>
+
+    <section class="card results">
+      <div class="result-panel">
+        <h3>After switchMap</h3>
+        <p class="caption">
+          Canceled requests never reach the subscriber. Only the latest term survives.
+        </p>
+
+        <div class="result-display">
+          @if (latestResponse.length > 0) {
+            <p class="result-message">{{ latestResponse }}</p>
+            <p class="result-note">Only "COMPLETED" makes it through after typing settles.</p>
+          } @else {
+            <p class="empty">No response has reached the subscriber yet.</p>
+          }
+        </div>
+      </div>
+
+      <div class="result-panel">
+        <h3>Subscriber log</h3>
+
+        @if (outputEvents.length === 0) {
+          <p class="empty">The log stays empty until the last request completes.</p>
+        } @else {
+          <ul class="event-list compact">
+            @for (event of outputEvents; track event.requestId) {
+              <li>
+                <span class="time">t={{ event.atMs }}ms</span>
+                {{ event.message }}
+              </li>
+            }
+          </ul>
+        }
+      </div>
     </section>
   }
 </main>

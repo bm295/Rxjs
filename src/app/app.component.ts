@@ -1,37 +1,56 @@
-import { CommonModule } from '@angular/common';
 import { Component, OnDestroy } from '@angular/core';
-import { Subscription, interval, map, switchMap, take, tap } from 'rxjs';
+import { Subscription, finalize, last, map, switchMap, take, tap, timer } from 'rxjs';
 
-type StreamStatus = 'active' | 'completed' | 'canceled';
+type RequestStatus = 'in-flight' | 'completed' | 'canceled';
 
-interface StreamRow {
+interface TypingEvent {
   id: number;
-  emittedCount: number;
-  status: StreamStatus;
+  term: string;
+  atMs: number;
+}
+
+interface RequestRow {
+  id: number;
+  term: string;
+  progressStep: number;
+  progressPercent: number;
+  status: RequestStatus;
+  note: string;
 }
 
 interface OutputEvent {
-  outerId: number;
-  innerIndex: number;
+  requestId: number;
+  term: string;
+  message: string;
   atMs: number;
 }
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [CommonModule],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css'
 })
 export class AppComponent implements OnDestroy {
   protected selectedFunction: 'switchMap' | null = null;
   protected running = false;
-  protected streamRows: StreamRow[] = [];
+  protected typedTerm = '';
+  protected typingEvents: TypingEvent[] = [];
+  protected requestRows: RequestRow[] = [];
   protected outputEvents: OutputEvent[] = [];
-  protected readonly ballSlots = [1, 2, 3, 4, 5, 6];
+  protected latestResponse = '';
+  protected readonly demoWord = 'COMPLETED';
+  protected readonly demoLetters = this.demoWord.split('');
+  protected readonly requestPhases = [
+    'debounce before request',
+    'request sent',
+    'server processing',
+    'response ready'
+  ];
 
+  private readonly typingDelayMs = 280;
+  private readonly requestStepDelayMs = 260;
   private demoSub: Subscription | null = null;
-  private activeStreamId: number | null = null;
   private startedAt = 0;
 
   protected openSwitchMapDemo(): void {
@@ -49,27 +68,17 @@ export class AppComponent implements OnDestroy {
     this.running = true;
     this.startedAt = Date.now();
 
-    const outerStream$ = interval(2200).pipe(
-      take(4),
-      map((value) => value + 1),
-      tap((outerId) => this.activateStream(outerId)),
-      switchMap((outerId) =>
-        interval(450).pipe(
-          take(6),
-          map((innerIndex) => ({
-            outerId,
-            innerIndex: innerIndex + 1,
-            atMs: Date.now() - this.startedAt
-          }))
-        )
-      )
+    const typing$ = timer(0, this.typingDelayMs).pipe(
+      take(this.demoLetters.length),
+      map((index) => this.demoWord.slice(0, index + 1)),
+      tap((term) => this.recordTypedTerm(term)),
+      switchMap((term) => this.createRequestStream(term))
     );
 
-    this.demoSub = outerStream$.subscribe({
+    this.demoSub = typing$.subscribe({
       next: (event) => this.recordOutput(event),
       complete: () => {
         this.running = false;
-        this.markLastActiveAsCompleted();
       }
     });
   }
@@ -78,61 +87,101 @@ export class AppComponent implements OnDestroy {
     this.demoSub?.unsubscribe();
     this.demoSub = null;
     this.running = false;
-    this.streamRows = [];
+    this.typedTerm = '';
+    this.typingEvents = [];
+    this.requestRows = [];
     this.outputEvents = [];
-    this.activeStreamId = null;
+    this.latestResponse = '';
     this.startedAt = 0;
-  }
-
-  protected trackById(_: number, row: StreamRow): number {
-    return row.id;
   }
 
   ngOnDestroy(): void {
     this.demoSub?.unsubscribe();
   }
 
-  private activateStream(outerId: number): void {
-    if (this.activeStreamId !== null) {
-      const current = this.streamRows.find((row) => row.id === this.activeStreamId);
-      if (current && current.emittedCount < this.ballSlots.length) {
-        current.status = 'canceled';
-      }
-    }
+  private createRequestStream(term: string) {
+    const requestId = this.startRequest(term);
+    let completed = false;
 
-    this.streamRows.push({
-      id: outerId,
-      emittedCount: 0,
-      status: 'active'
+    return timer(this.requestStepDelayMs, this.requestStepDelayMs).pipe(
+      take(this.requestPhases.length),
+      tap((step) => this.advanceRequest(requestId, step + 1)),
+      last(),
+      map(() => {
+        completed = true;
+
+        return {
+          requestId,
+          term,
+          message: 'Response delivered for "' + term + '"',
+          atMs: Date.now() - this.startedAt
+        };
+      }),
+      finalize(() => this.finishRequest(requestId, completed))
+    );
+  }
+
+  private recordTypedTerm(term: string): void {
+    this.typedTerm = term;
+    this.typingEvents.push({
+      id: this.typingEvents.length + 1,
+      term,
+      atMs: Date.now() - this.startedAt
+    });
+  }
+
+  private startRequest(term: string): number {
+    const requestId = this.requestRows.length + 1;
+
+    this.requestRows.push({
+      id: requestId,
+      term,
+      progressStep: 0,
+      progressPercent: 0,
+      status: 'in-flight',
+      note: 'waiting for debounce to finish'
     });
 
-    this.activeStreamId = outerId;
+    return requestId;
+  }
+
+  private advanceRequest(requestId: number, progressStep: number): void {
+    const request = this.requestRows.find((item) => item.id === requestId);
+    if (!request) {
+      return;
+    }
+
+    request.progressStep = progressStep;
+    request.progressPercent = (progressStep / this.requestPhases.length) * 100;
+    request.note = this.requestPhases[progressStep - 1] ?? request.note;
   }
 
   private recordOutput(event: OutputEvent): void {
     this.outputEvents.push(event);
+    this.latestResponse = event.message;
 
-    const row = this.streamRows.find((item) => item.id === event.outerId);
-    if (!row) {
+    const request = this.requestRows.find((item) => item.id === event.requestId);
+    if (!request) {
       return;
     }
 
-    row.emittedCount = event.innerIndex;
-    if (event.innerIndex === this.ballSlots.length) {
-      row.status = 'completed';
-    }
+    request.status = 'completed';
+    request.progressStep = this.requestPhases.length;
+    request.progressPercent = 100;
+    request.note = 'response reached the subscriber';
   }
 
-  private markLastActiveAsCompleted(): void {
-    if (this.activeStreamId === null) {
+  private finishRequest(requestId: number, completed: boolean): void {
+    if (completed) {
       return;
     }
 
-    const last = this.streamRows.find((row) => row.id === this.activeStreamId);
-    if (!last) {
+    const request = this.requestRows.find((item) => item.id === requestId);
+    if (!request) {
       return;
     }
 
-    last.status = last.emittedCount === this.ballSlots.length ? 'completed' : 'canceled';
+    request.status = 'canceled';
+    request.note = 'canceled when the next key arrived';
   }
 }
