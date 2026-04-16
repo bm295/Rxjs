@@ -2,5 +2,9 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: #f1f3f5;
+  background: #eef2ff;
+}
+
+* {
+  box-sizing: border-box;
 }
