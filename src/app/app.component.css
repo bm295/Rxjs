@@ -36,7 +36,13 @@ header h1 {
 }
 
 .menu {
-  max-width: 420px;
+  max-width: 620px;
+}
+
+.feature-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
 }
 
 .feature-btn {
@@ -48,6 +54,10 @@ header h1 {
   color: #fff;
   font-size: 1rem;
   cursor: pointer;
+}
+
+.feature-btn.secondary {
+  background: linear-gradient(135deg, #c2410c, #7c2d12);
 }
 
 .controls {
@@ -110,6 +120,13 @@ button.ghost {
   gap: 10px;
 }
 
+.click-strip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .letter {
   min-width: 48px;
   min-height: 56px;
@@ -130,6 +147,29 @@ button.ghost {
   background: linear-gradient(135deg, var(--accent), var(--accent-strong));
   color: #fff;
   transform: translateY(-2px);
+}
+
+.click-pill {
+  padding: 12px 16px;
+  border: 1px dashed var(--border);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #ffffff, #f8fafc);
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.click-pill.accepted {
+  border-style: solid;
+  border-color: #bbf7d0;
+  background: linear-gradient(180deg, #ffffff, #f0fdf4);
+  color: var(--success);
+}
+
+.click-pill.ignored {
+  border-style: solid;
+  border-color: #fdba74;
+  background: linear-gradient(180deg, #ffffff, #fff7ed);
+  color: #c2410c;
 }
 
 .board {
@@ -169,6 +209,51 @@ button.ghost {
 
 .event-list.compact li {
   align-items: flex-start;
+}
+
+.attempts li {
+  display: block;
+}
+
+.attempt-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.attempt-meta {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.attempt-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.attempt-status.accepted {
+  background: var(--success-soft);
+  color: var(--success);
+}
+
+.attempt-status.ignored {
+  background: #ffedd5;
+  color: #c2410c;
+}
+
+.attempt-note {
+  margin: 8px 0 0;
+  color: var(--muted);
 }
 
 .time {
@@ -304,6 +389,10 @@ code {
   }
 
   .letter-strip {
+    justify-content: flex-start;
+  }
+
+  .click-strip {
     justify-content: flex-start;
   }
 }

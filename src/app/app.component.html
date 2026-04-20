@@ -7,11 +7,20 @@
   @if (selectedFunction === null) {
     <section class="menu card">
       <h2>Main menu</h2>
-      <button type="button" class="feature-btn" (click)="openSwitchMapDemo()">
-        switchMap
-      </button>
+      <div class="feature-grid">
+        <button type="button" class="feature-btn" (click)="openSwitchMapDemo()">
+          switchMap
+        </button>
+        <button
+          type="button"
+          class="feature-btn secondary"
+          (click)="openExhaustMapDemo()"
+        >
+          exhaustMap
+        </button>
+      </div>
     </section>
-  } @else {
+  } @else if (selectedFunction === 'switchMap') {
     <section class="card controls">
       <div>
         <h2>Operator: switchMap</h2>
@@ -82,7 +91,7 @@
                 <div class="request-head">
                   <div>
                     <p class="request-label">Request {{ request.id }}</p>
-                    <strong>{{ request.term }}</strong>
+                    <strong>{{ request.value }}</strong>
                   </div>
                   <span
                     class="status-chip"
@@ -127,6 +136,157 @@
 
         @if (outputEvents.length === 0) {
           <p class="empty">The log stays empty until the last request completes.</p>
+        } @else {
+          <ul class="event-list compact">
+            @for (event of outputEvents; track event.requestId) {
+              <li>
+                <span class="time">t={{ event.atMs }}ms</span>
+                {{ event.message }}
+              </li>
+            }
+          </ul>
+        }
+      </div>
+    </section>
+  } @else if (selectedFunction === 'exhaustMap') {
+    <section class="card controls">
+      <div>
+        <h2>Operator: exhaustMap</h2>
+        <p>
+          The first click starts a request, then every later click is ignored until that request
+          finishes.
+        </p>
+      </div>
+      <div class="actions">
+        <button type="button" (click)="runExhaustMapDemo()" [disabled]="running">
+          {{ running ? 'Submitting...' : 'Run demo' }}
+        </button>
+        <button type="button" (click)="resetDemo()">Reset</button>
+        <button type="button" class="ghost" (click)="backToMenu()">Back to menu</button>
+      </div>
+    </section>
+
+    <section class="card hero">
+      <div>
+        <p class="eyebrow">Rapid-submit simulation</p>
+        <h3>Button mash: save draft</h3>
+        <p class="caption">
+          Six clicks arrive in bursts. exhaustMap accepts the first click in each free window and
+          ignores the rest while a request is still active.
+        </p>
+      </div>
+
+      <div class="click-strip" aria-label="Scheduled submit clicks">
+        @for (click of exhaustClickPlan; track click.label; let index = $index) {
+          <span
+            class="click-pill"
+            [class.accepted]="index < submitAttempts.length && submitAttempts[index].status === 'accepted'"
+            [class.ignored]="index < submitAttempts.length && submitAttempts[index].status === 'ignored'"
+          >
+            {{ click.label }}
+          </span>
+        }
+      </div>
+    </section>
+
+    <section class="board">
+      <section class="card column">
+        <h3>Outer stream: submit clicks</h3>
+        <p class="caption">Every click still emits. exhaustMap decides which ones can enter.</p>
+
+        @if (submitAttempts.length === 0) {
+          <p class="empty">Run the demo to emit a burst of rapid submit clicks.</p>
+        } @else {
+          <ul class="event-list attempts">
+            @for (attempt of submitAttempts; track attempt.id) {
+              <li>
+                <div class="attempt-row">
+                  <div class="attempt-meta">
+                    <span class="time">t={{ attempt.atMs }}ms</span>
+                    <strong>{{ attempt.label }}</strong>
+                  </div>
+                  <span
+                    class="attempt-status"
+                    [class.accepted]="attempt.status === 'accepted'"
+                    [class.ignored]="attempt.status === 'ignored'"
+                  >
+                    {{ attempt.status }}
+                  </span>
+                </div>
+                <p class="attempt-note">{{ attempt.note }}</p>
+              </li>
+            }
+          </ul>
+        }
+      </section>
+
+      <section class="card column">
+        <h3>Inner stream: requests</h3>
+        <p class="caption">Only accepted clicks create a request. Ignored clicks do nothing.</p>
+
+        @if (requestRows.length === 0) {
+          <p class="empty">No request has started yet.</p>
+        } @else {
+          <div class="request-list">
+            @for (request of requestRows; track request.id) {
+              <article
+                class="request-card"
+                [class.canceled]="request.status === 'canceled'"
+                [class.completed]="request.status === 'completed'"
+              >
+                <div class="request-head">
+                  <div>
+                    <p class="request-label">Request {{ request.id }}</p>
+                    <strong>{{ request.value }}</strong>
+                  </div>
+                  <span
+                    class="status-chip"
+                    [class.canceled]="request.status === 'canceled'"
+                    [class.completed]="request.status === 'completed'"
+                  >
+                    {{ request.status }}
+                  </span>
+                </div>
+
+                <div class="progress-track" aria-hidden="true">
+                  <span class="progress-fill" [style.width.%]="request.progressPercent"></span>
+                </div>
+
+                <p class="request-note">{{ request.note }}</p>
+              </article>
+            }
+          </div>
+        }
+      </section>
+    </section>
+
+    <section class="card results">
+      <div class="result-panel">
+        <h3>After exhaustMap</h3>
+        <p class="caption">
+          Ignored clicks never open inner streams. The subscriber only sees responses from accepted
+          clicks.
+        </p>
+
+        <div class="result-display">
+          @if (latestResponse.length > 0) {
+            <p class="result-message">{{ latestResponse }}</p>
+            @if (ignoredAttemptSummary.length > 0) {
+              <p class="result-note">Ignored clicks: {{ ignoredAttemptSummary }}.</p>
+            } @else {
+              <p class="result-note">Every click was accepted because no request was busy.</p>
+            }
+          } @else {
+            <p class="empty">No save has reached the subscriber yet.</p>
+          }
+        </div>
+      </div>
+
+      <div class="result-panel">
+        <h3>Subscriber log</h3>
+
+        @if (outputEvents.length === 0) {
+          <p class="empty">Only accepted clicks will appear here after their request finishes.</p>
         } @else {
           <ul class="event-list compact">
             @for (event of outputEvents; track event.requestId) {

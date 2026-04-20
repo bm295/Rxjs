@@ -1,6 +1,6 @@
 # RxJS Visual Lab
 
-This repo is a small Angular 19 app that visualizes RxJS behavior. The current screen demonstrates how `switchMap` cancels the previous inner stream when a new outer value arrives.
+This repo is a small Angular 19 app that visualizes RxJS behavior. It currently includes demos for `switchMap` and `exhaustMap`, showing how each operator handles bursts of outer emissions differently.
 
 ## Prerequisites
 
