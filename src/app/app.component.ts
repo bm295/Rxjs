@@ -1,5 +1,8 @@
-import { Component, OnDestroy } from '@angular/core';
+import { Component, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { ExhaustMapDemoViewComponent } from './demo-views/exhaust-map-demo-view/exhaust-map-demo-view.component';
+import { MergeMapDemoViewComponent } from './demo-views/merge-map-demo-view/merge-map-demo-view.component';
+import { SwitchMapDemoViewComponent } from './demo-views/switch-map-demo-view/switch-map-demo-view.component';
 import {
   EXHAUST_MAP_CLICK_PLAN,
   createExhaustMapDemo
@@ -13,17 +16,32 @@ import {
   SubmitAttempt,
   TypingEvent
 } from './demos/demo.models';
+import { createMergeMapDemo } from './demos/merge-map-demo';
 import {
   SWITCH_MAP_DEMO_LETTERS,
   SWITCH_MAP_DEMO_WORD,
   createSwitchMapDemo
 } from './demos/switch-map-demo';
 
+type DemoVariant = 'primary' | 'secondary' | 'tertiary';
+
+interface DemoMenuItem {
+  operator: DemoOperator;
+  label: string;
+  variant: DemoVariant;
+}
+
 @Component({
   selector: 'app-root',
   standalone: true,
+  imports: [
+    SwitchMapDemoViewComponent,
+    MergeMapDemoViewComponent,
+    ExhaustMapDemoViewComponent
+  ],
   templateUrl: './app.component.html',
-  styleUrl: './app.component.css'
+  styleUrl: './app.component.css',
+  encapsulation: ViewEncapsulation.None
 })
 export class AppComponent implements OnDestroy {
   protected selectedFunction: DemoOperator | null = null;
@@ -38,6 +56,11 @@ export class AppComponent implements OnDestroy {
   protected readonly demoLetters = SWITCH_MAP_DEMO_LETTERS;
   protected readonly requestPhases = REQUEST_PHASES;
   protected readonly exhaustClickPlan = EXHAUST_MAP_CLICK_PLAN;
+  protected readonly demoMenuItems: DemoMenuItem[] = [
+    { operator: 'switchMap', label: 'switchMap', variant: 'primary' },
+    { operator: 'mergeMap', label: 'mergeMap', variant: 'tertiary' },
+    { operator: 'exhaustMap', label: 'exhaustMap', variant: 'secondary' }
+  ];
 
   private readonly typingDelayMs = 280;
   private readonly requestStepDelayMs = 260;
@@ -50,12 +73,9 @@ export class AppComponent implements OnDestroy {
       .join(', ');
   }
 
-  protected openSwitchMapDemo(): void {
-    this.openDemo('switchMap');
-  }
-
-  protected openExhaustMapDemo(): void {
-    this.openDemo('exhaustMap');
+  protected openDemo(operator: DemoOperator): void {
+    this.selectedFunction = operator;
+    this.resetDemo();
   }
 
   protected backToMenu(): void {
@@ -68,6 +88,28 @@ export class AppComponent implements OnDestroy {
     this.running = true;
 
     this.demoSub = createSwitchMapDemo({
+      demoWord: this.demoWord,
+      typingDelayMs: this.typingDelayMs,
+      requestPhases: this.requestPhases,
+      requestStepDelayMs: this.requestStepDelayMs,
+      recordTypedTerm: (term, atMs) => this.recordTypedTerm(term, atMs),
+      startRequest: (value, note) => this.startRequest(value, note),
+      advanceRequest: (requestId, progressStep, note) =>
+        this.advanceRequest(requestId, progressStep, note),
+      completeRequest: (event, note) => this.recordOutput(event, note),
+      cancelRequest: (requestId, note) => this.cancelRequest(requestId, note)
+    }).subscribe({
+      complete: () => {
+        this.running = false;
+      }
+    });
+  }
+
+  protected runMergeMapDemo(): void {
+    this.resetDemo();
+    this.running = true;
+
+    this.demoSub = createMergeMapDemo({
       demoWord: this.demoWord,
       typingDelayMs: this.typingDelayMs,
       requestPhases: this.requestPhases,
@@ -121,11 +163,6 @@ export class AppComponent implements OnDestroy {
 
   ngOnDestroy(): void {
     this.demoSub?.unsubscribe();
-  }
-
-  private openDemo(operator: DemoOperator): void {
-    this.selectedFunction = operator;
-    this.resetDemo();
   }
 
   private recordTypedTerm(term: string, atMs: number): void {

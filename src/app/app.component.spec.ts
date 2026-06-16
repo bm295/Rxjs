@@ -25,7 +25,23 @@ describe('AppComponent', () => {
 
     expect(compiled.querySelector('h1')?.textContent).toContain('RxJS Visual Lab');
     expect(featureButtons).toContain('switchMap');
+    expect(featureButtons).toContain('mergeMap');
     expect(featureButtons).toContain('exhaustMap');
+  });
+
+  it('opens the mergeMap demo', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const mergeButton = Array.from(compiled.querySelectorAll('.feature-btn')).find((button) =>
+      button.textContent?.includes('mergeMap')
+    ) as HTMLButtonElement | undefined;
+
+    mergeButton?.click();
+    fixture.detectChanges();
+
+    expect(compiled.querySelector('.controls h2')?.textContent).toContain('Operator: mergeMap');
   });
 
   it('opens the exhaustMap demo', () => {

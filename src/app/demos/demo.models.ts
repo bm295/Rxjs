@@ -1,4 +1,4 @@
-export type DemoOperator = 'switchMap' | 'exhaustMap';
+export type DemoOperator = 'switchMap' | 'mergeMap' | 'exhaustMap';
 export type RequestStatus = 'in-flight' | 'completed' | 'canceled';
 export type AttemptStatus = 'accepted' | 'ignored';
 
