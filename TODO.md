@@ -4,9 +4,9 @@ Purpose: make RxJS functions easy to understand by visualizing how values move t
 
 ## Demo Coverage Roadmap
 
-- [ ] Update `src/app/demos/demo.models.ts` to add the `concatMap` operator name.
-- [ ] Create `src/app/demos/concat-map-demo.ts` for the `concatMap` visualization scenario.
-- [ ] Create `src/app/demo-views/concat-map-demo-view/concat-map-demo-view.component.ts` for the `concatMap` view component.
+- [x] Update `src/app/demos/demo.models.ts` to add the `concatMap` operator name.
+- [x] Create `src/app/demos/concat-map-demo.ts` for the `concatMap` visualization scenario.
+- [x] Create `src/app/demo-views/concat-map-demo-view/concat-map-demo-view.component.ts` for the `concatMap` view component.
 - [ ] Create `src/app/demo-views/concat-map-demo-view/concat-map-demo-view.component.html` for the `concatMap` explanation and visualization layout.
 - [ ] Update `src/app/app.component.ts` to add `concatMap` to the demo menu.
 - [ ] Update `src/app/demos/demo.models.ts` to add the `map` operator name.
