@@ -1,10 +1,11 @@
 # RxJS Visual Lab
 
-RxJS Visual Lab is a standalone Angular app for learning how higher-order RxJS mapping operators handle competing outer emissions and inner streams. The app currently focuses on three interactive visualizations:
+RxJS Visual Lab is a standalone Angular app for learning how higher-order RxJS mapping operators handle competing outer emissions and inner streams. The app currently focuses on four interactive visualizations:
 
 - **`switchMap` typeahead** — simulates a user typing `COMPLETED`, starts a request for each typed value, and cancels older in-flight requests when the next value arrives.
 - **`mergeMap` concurrent typeahead** — simulates a user typing `COMPLETED`, starts a request for each typed value, and lets every request complete concurrently.
 - **`exhaustMap` rapid submit** — simulates repeated save-button clicks, accepts the first click while idle, and ignores later clicks until the current request finishes.
+- **`concatMap` queued typeahead** — queues each typed value and runs its request only after the previous request completes.
 
 The UI shows each demo as a timeline: outer stream events, inner request progress, canceled or ignored work, and the final subscriber output.
 
@@ -33,6 +34,7 @@ The UI shows each demo as a timeline: outer stream events, inner request progres
 │           ├── demo.models.ts   # Shared demo types and request phase labels
 │           ├── switch-map-demo.ts
 │           ├── merge-map-demo.ts
+│           ├── concat-map-demo.ts
 │           └── exhaust-map-demo.ts
 └── tsconfig*.json               # TypeScript and Angular compiler settings
 ```
@@ -68,6 +70,16 @@ Key files:
 - `src/app/demos/exhaust-map-demo.ts` builds the click schedule and `exhaustMap` request pipeline.
 - `src/app/app.component.ts` records accepted and ignored clicks, request state, and subscriber output.
 - `src/app/demo-views/exhaust-map-demo-view/` renders the rapid-submit visualization.
+
+### `concatMap` demo
+
+The `concatMap` demo uses the typeahead input pattern but queues outer values while an inner request is active. Each request starts only after the previous request completes, so subscriber output preserves source order.
+
+Key files:
+
+- `src/app/demos/concat-map-demo.ts` builds the timed typing stream and sequential `concatMap` request pipeline.
+- `src/app/app.component.ts` records typed values, queued request state, and subscriber output.
+- `src/app/demo-views/concat-map-demo-view/` renders the queued typeahead visualization.
 
 ## Prerequisites
 

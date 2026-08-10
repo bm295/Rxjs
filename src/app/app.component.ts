@@ -1,5 +1,6 @@
 import { Component, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { ConcatMapDemoViewComponent } from './demo-views/concat-map-demo-view/concat-map-demo-view.component';
 import { ExhaustMapDemoViewComponent } from './demo-views/exhaust-map-demo-view/exhaust-map-demo-view.component';
 import { MergeMapDemoViewComponent } from './demo-views/merge-map-demo-view/merge-map-demo-view.component';
 import { SwitchMapDemoViewComponent } from './demo-views/switch-map-demo-view/switch-map-demo-view.component';
@@ -16,6 +17,7 @@ import {
   SubmitAttempt,
   TypingEvent
 } from './demos/demo.models';
+import { createConcatMapDemo } from './demos/concat-map-demo';
 import { createMergeMapDemo } from './demos/merge-map-demo';
 import {
   SWITCH_MAP_DEMO_LETTERS,
@@ -37,7 +39,8 @@ interface DemoMenuItem {
   imports: [
     SwitchMapDemoViewComponent,
     MergeMapDemoViewComponent,
-    ExhaustMapDemoViewComponent
+    ExhaustMapDemoViewComponent,
+    ConcatMapDemoViewComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
@@ -59,7 +62,8 @@ export class AppComponent implements OnDestroy {
   protected readonly demoMenuItems: DemoMenuItem[] = [
     { operator: 'switchMap', label: 'switchMap', variant: 'primary' },
     { operator: 'mergeMap', label: 'mergeMap', variant: 'tertiary' },
-    { operator: 'exhaustMap', label: 'exhaustMap', variant: 'secondary' }
+    { operator: 'exhaustMap', label: 'exhaustMap', variant: 'secondary' },
+    { operator: 'concatMap', label: 'concatMap', variant: 'primary' }
   ];
 
   private readonly typingDelayMs = 280;
@@ -137,6 +141,28 @@ export class AppComponent implements OnDestroy {
       requestStepDelayMs: this.requestStepDelayMs,
       recordSubmitAttempt: (label, atMs, status, note) =>
         this.recordSubmitAttempt(label, atMs, status, note),
+      startRequest: (value, note) => this.startRequest(value, note),
+      advanceRequest: (requestId, progressStep, note) =>
+        this.advanceRequest(requestId, progressStep, note),
+      completeRequest: (event, note) => this.recordOutput(event, note),
+      cancelRequest: (requestId, note) => this.cancelRequest(requestId, note)
+    }).subscribe({
+      complete: () => {
+        this.running = false;
+      }
+    });
+  }
+
+  protected runConcatMapDemo(): void {
+    this.resetDemo();
+    this.running = true;
+
+    this.demoSub = createConcatMapDemo({
+      demoWord: this.demoWord,
+      typingDelayMs: this.typingDelayMs,
+      requestPhases: this.requestPhases,
+      requestStepDelayMs: this.requestStepDelayMs,
+      recordTypedTerm: (term, atMs) => this.recordTypedTerm(term, atMs),
       startRequest: (value, note) => this.startRequest(value, note),
       advanceRequest: (requestId, progressStep, note) =>
         this.advanceRequest(requestId, progressStep, note),
