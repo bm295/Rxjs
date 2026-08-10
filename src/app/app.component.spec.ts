@@ -27,6 +27,7 @@ describe('AppComponent', () => {
     expect(featureButtons).toContain('switchMap');
     expect(featureButtons).toContain('mergeMap');
     expect(featureButtons).toContain('exhaustMap');
+    expect(featureButtons).toContain('concatMap');
   });
 
   it('opens the mergeMap demo', () => {
@@ -57,5 +58,20 @@ describe('AppComponent', () => {
     fixture.detectChanges();
 
     expect(compiled.querySelector('.controls h2')?.textContent).toContain('Operator: exhaustMap');
+  });
+
+  it('opens the concatMap demo', () => {
+    const fixture = TestBed.createComponent(AppComponent);
+    fixture.detectChanges();
+
+    const compiled = fixture.nativeElement as HTMLElement;
+    const concatButton = Array.from(compiled.querySelectorAll('.feature-btn')).find((button) =>
+      button.textContent?.includes('concatMap')
+    ) as HTMLButtonElement | undefined;
+
+    concatButton?.click();
+    fixture.detectChanges();
+
+    expect(compiled.querySelector('.controls h2')?.textContent).toContain('Operator: concatMap');
   });
 });

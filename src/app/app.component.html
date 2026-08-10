@@ -65,6 +65,20 @@
           (backToMenu)="backToMenu()"
         />
       }
+      @case ('concatMap') {
+        <app-concat-map-demo-view
+          [running]="running"
+          [typedTerm]="typedTerm"
+          [demoLetters]="demoLetters"
+          [typingEvents]="typingEvents"
+          [requestRows]="requestRows"
+          [outputEvents]="outputEvents"
+          [latestResponse]="latestResponse"
+          (runDemo)="runConcatMapDemo()"
+          (resetDemo)="resetDemo()"
+          (backToMenu)="backToMenu()"
+        />
+      }
     }
   }
 </main>
