@@ -60,6 +60,10 @@ header h1 {
   background: linear-gradient(135deg, #c2410c, #7c2d12);
 }
 
+.feature-btn.tertiary {
+  background: linear-gradient(135deg, #2563eb, #1e3a8a);
+}
+
 .controls {
   display: flex;
   justify-content: space-between;
