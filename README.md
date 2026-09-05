@@ -68,3 +68,9 @@ For watch mode during local development:
 ```bash
 npm run test:watch
 ```
+
+## Local package extraction
+
+`packages/demo-timeline` is a framework-independent extraction from the
+operator demos. Build it with `npm run build` from that folder before using it
+as a local `file:` package.

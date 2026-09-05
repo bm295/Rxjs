@@ -1,0 +1,13 @@
+{
+  "name": "@rxjs-playground/demo-timeline",
+  "version": "0.1.0",
+  "description": "Small, framework-independent helpers extracted from the RxJS operator demos.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc --project tsconfig.json"
+  }
+}
