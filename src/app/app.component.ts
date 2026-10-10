@@ -17,7 +17,6 @@ import {
   SubmitAttempt,
   TypingEvent
 } from './demos/demo.models';
-import { createConcatMapDemo } from './demos/concat-map-demo';
 import { createMergeMapDemo } from './demos/merge-map-demo';
 import {
   SWITCH_MAP_DEMO_LETTERS,
@@ -141,28 +140,6 @@ export class AppComponent implements OnDestroy {
       requestStepDelayMs: this.requestStepDelayMs,
       recordSubmitAttempt: (label, atMs, status, note) =>
         this.recordSubmitAttempt(label, atMs, status, note),
-      startRequest: (value, note) => this.startRequest(value, note),
-      advanceRequest: (requestId, progressStep, note) =>
-        this.advanceRequest(requestId, progressStep, note),
-      completeRequest: (event, note) => this.recordOutput(event, note),
-      cancelRequest: (requestId, note) => this.cancelRequest(requestId, note)
-    }).subscribe({
-      complete: () => {
-        this.running = false;
-      }
-    });
-  }
-
-  protected runConcatMapDemo(): void {
-    this.resetDemo();
-    this.running = true;
-
-    this.demoSub = createConcatMapDemo({
-      demoWord: this.demoWord,
-      typingDelayMs: this.typingDelayMs,
-      requestPhases: this.requestPhases,
-      requestStepDelayMs: this.requestStepDelayMs,
-      recordTypedTerm: (term, atMs) => this.recordTypedTerm(term, atMs),
       startRequest: (value, note) => this.startRequest(value, note),
       advanceRequest: (requestId, progressStep, note) =>
         this.advanceRequest(requestId, progressStep, note),

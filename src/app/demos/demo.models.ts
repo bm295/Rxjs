@@ -8,6 +8,19 @@ export interface TypingEvent {
   atMs: number;
 }
 
+export interface FileQueueEvent {
+  id: number;
+  fileName: string;
+  atMs: number;
+}
+
+export interface ConcatMapDemoOptions extends RequestTrackingHooks {
+  files: string[];
+  requestPhases: string[];
+  requestStepDelayMs: number;
+  recordQueuedFile(fileName: string, atMs: number): void;
+}
+
 export interface SubmitAttempt {
   id: number;
   label: string;

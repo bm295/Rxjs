@@ -1,11 +1,43 @@
 # RxJS Visual Lab
 
+## Prerequisites
+
+Install Node.js and npm. The project has been verified locally with:
+
+- Node.js `v22.21.0`
+- npm `11.6.4`
+
+## Install dependencies
+
+```bash
+npm install
+```
+
+## Run the app locally
+
+Start the Angular development server:
+
+```bash
+npm start
+```
+
+Then open:
+
+```text
+http://localhost:4200
+```
+
+Notes:
+
+- The dev server runs in watch mode and rebuilds when source files change.
+- If port `4200` is already in use, Angular CLI may prompt you to choose another port.
+
 RxJS Visual Lab is a standalone Angular app for learning how higher-order RxJS mapping operators handle competing outer emissions and inner streams. The app currently focuses on four interactive visualizations:
 
-- **`switchMap` typeahead** — simulates a user typing `COMPLETED`, starts a request for each typed value, and cancels older in-flight requests when the next value arrives.
-- **`mergeMap` concurrent typeahead** — simulates a user typing `COMPLETED`, starts a request for each typed value, and lets every request complete concurrently.
-- **`exhaustMap` rapid submit** — simulates repeated save-button clicks, accepts the first click while idle, and ignores later clicks until the current request finishes.
-- **`concatMap` queued typeahead** — queues each typed value and runs its request only after the previous request completes.
+- **`switchMap` typeahead** â€” simulates a user typing `COMPLETED`, starts a request for each typed value, and cancels older in-flight requests when the next value arrives.
+- **`mergeMap` concurrent typeahead** â€” simulates a user typing `COMPLETED`, starts a request for each typed value, and lets every request complete concurrently.
+- **`exhaustMap` rapid submit** â€” simulates repeated save-button clicks, accepts the first click while idle, and ignores later clicks until the current request finishes.
+- **`concatMap` multiple file uploads** - queues a batch of files and uploads each one only after the previous upload completes.
 
 The UI shows each demo as a timeline: outer stream events, inner request progress, canceled or ignored work, and the final subscriber output.
 
@@ -22,21 +54,21 @@ The UI shows each demo as a timeline: outer stream events, inner request progres
 
 ```text
 .
-├── angular.json                 # Angular CLI build, serve, test, and lint targets
-├── package.json                 # npm scripts and dependencies
-├── src/
-│   ├── main.ts                  # Bootstraps the standalone AppComponent
-│   ├── styles.css               # Global document styles
-│   └── app/
-│       ├── app.component.*      # App shell, demo navigation, UI state, and styles
-│       ├── demo-views/          # Per-demo Angular views and templates
-│       └── demos/
-│           ├── demo.models.ts   # Shared demo types and request phase labels
-│           ├── switch-map-demo.ts
-│           ├── merge-map-demo.ts
-│           ├── concat-map-demo.ts
-│           └── exhaust-map-demo.ts
-└── tsconfig*.json               # TypeScript and Angular compiler settings
+â”œâ”€â”€ angular.json                 # Angular CLI build, serve, test, and lint targets
+â”œâ”€â”€ package.json                 # npm scripts and dependencies
+â”œâ”€â”€ src/
+â”‚   â”œâ”€â”€ main.ts                  # Bootstraps the standalone AppComponent
+â”‚   â”œâ”€â”€ styles.css               # Global document styles
+â”‚   â””â”€â”€ app/
+â”‚       â”œâ”€â”€ app.component.*      # App shell, demo navigation, UI state, and styles
+â”‚       â”œâ”€â”€ demo-views/          # Per-demo Angular views and templates
+â”‚       â””â”€â”€ demos/
+â”‚           â”œâ”€â”€ demo.models.ts   # Shared demo types and request phase labels
+â”‚           â”œâ”€â”€ switch-map-demo.ts
+â”‚           â”œâ”€â”€ merge-map-demo.ts
+â”‚           â”œâ”€â”€ concat-map-demo.ts
+â”‚           â””â”€â”€ exhaust-map-demo.ts
+â””â”€â”€ tsconfig*.json               # TypeScript and Angular compiler settings
 ```
 
 ## How the demos work
@@ -73,45 +105,13 @@ Key files:
 
 ### `concatMap` demo
 
-The `concatMap` demo uses the typeahead input pattern but queues outer values while an inner request is active. Each request starts only after the previous request completes, so subscriber output preserves source order.
+The `concatMap` demo emits a batch of file names together and queues them while an upload is active. Each simulated upload starts only after the previous upload completes, so subscriber output preserves selection order. The UI shows which files are ready, queued, uploading, or uploaded.
 
 Key files:
 
-- `src/app/demos/concat-map-demo.ts` builds the timed typing stream and sequential `concatMap` request pipeline.
-- `src/app/app.component.ts` records typed values, queued request state, and subscriber output.
-- `src/app/demo-views/concat-map-demo-view/` renders the queued typeahead visualization.
-
-## Prerequisites
-
-Install Node.js and npm. The project has been verified locally with:
-
-- Node.js `v22.21.0`
-- npm `11.6.4`
-
-## Install dependencies
-
-```bash
-npm install
-```
-
-## Run the app locally
-
-Start the Angular development server:
-
-```bash
-npm start
-```
-
-Then open:
-
-```text
-http://localhost:4200
-```
-
-Notes:
-
-- The dev server runs in watch mode and rebuilds when source files change.
-- If port `4200` is already in use, Angular CLI may prompt you to choose another port.
+- `src/app/demos/concat-map-demo.ts` builds the file batch stream and sequential `concatMap` upload pipeline.
+- `src/app/demo-views/concat-map-demo-view/` owns the upload configuration, state, subscription lifecycle, and visualization.
+- `src/app/app.component.*` only mounts the concatMap component and handles its back-to-menu event; editing this demo does not require changes to the app shell.
 
 ## Build
 

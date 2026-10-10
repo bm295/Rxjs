@@ -1,28 +1,28 @@
 <section class="card controls">
   <div>
     <h2>Operator: concatMap</h2>
-    <p>Each typed value is queued, and concatMap runs one inner request at a time.</p>
+    <p>Each file is queued, and concatMap uploads one file at a time.</p>
   </div>
   <div class="actions">
-    <button type="button" (click)="runDemo.emit()" [disabled]="running">
-      {{ running ? 'Typing...' : 'Run demo' }}
+    <button type="button" (click)="runDemo()" [disabled]="running">
+      {{ running ? 'Uploading...' : 'Upload files' }}
     </button>
-    <button type="button" (click)="resetDemo.emit()">Reset</button>
+    <button type="button" (click)="resetDemo()">Reset</button>
     <button type="button" class="ghost" (click)="backToMenu.emit()">Back to menu</button>
   </div>
 </section>
 
 <section class="card hero">
   <div>
-    <p class="eyebrow">Queued typeahead simulation</p>
-    <h3>Search box: {{ typedTerm || '_' }}</h3>
-    <p class="caption">The outer stream emits C, CO, COM, COMP, and keeps going until COMPLETED.</p>
+    <p class="eyebrow">Multiple file upload simulation</p>
+    <h3>Upload batch: {{ uploadFiles.length }} files</h3>
+    <p class="caption">All files enter the queue together. Each upload starts after the previous one completes.</p>
   </div>
 
-  <div class="letter-strip" aria-label="Typing target word">
-    @for (letter of demoLetters; track $index) {
-      <span class="letter" [class.typed]="$index < typedTerm.length">
-        {{ letter }}
+  <div class="click-strip" aria-label="Files in upload batch">
+    @for (fileName of uploadFiles; track fileName) {
+      <span class="click-pill" [class.accepted]="fileStatus(fileName) === 'Uploaded'">
+        {{ fileName }}: {{ fileStatus(fileName) }}
       </span>
     }
   </div>
@@ -30,17 +30,17 @@
 
 <section class="board">
   <section class="card column">
-    <h3>Outer stream: typing</h3>
-    <p class="caption">Every key press emits the latest input value.</p>
+    <h3>Outer stream: file queue</h3>
+    <p class="caption">The outer stream emits each file in the selected batch.</p>
 
-    @if (typingEvents.length === 0) {
-      <p class="empty">Run the demo to emit C, CO, COM, and the rest of the word.</p>
+    @if (fileQueueEvents.length === 0) {
+      <p class="empty">Click Upload files to queue the batch.</p>
     } @else {
       <ul class="event-list">
-        @for (event of typingEvents; track event.id) {
+        @for (event of fileQueueEvents; track event.id) {
           <li>
             <span class="time">t={{ event.atMs }}ms</span>
-            <code>{{ event.term }}</code>
+            <code>{{ event.fileName }}</code>
           </li>
         }
       </ul>
@@ -48,11 +48,11 @@
   </section>
 
   <section class="card column">
-    <h3>Inner stream: requests</h3>
-    <p class="caption">concatMap waits for each inner request to complete before starting the next.</p>
+    <h3>Inner stream: uploads</h3>
+    <p class="caption">concatMap waits for each upload to complete before starting the next file.</p>
 
     @if (requestRows.length === 0) {
-      <p class="empty">No queued request has started yet.</p>
+      <p class="empty">No file upload has started yet.</p>
     } @else {
       <div class="request-list">
         @for (request of requestRows; track request.id) {
@@ -63,7 +63,7 @@
           >
             <div class="request-head">
               <div>
-                <p class="request-label">Request {{ request.id }}</p>
+                <p class="request-label">Upload {{ request.id }}</p>
                 <strong>{{ request.value }}</strong>
               </div>
               <span
@@ -90,14 +90,14 @@
 <section class="card results">
   <div class="result-panel">
     <h3>After concatMap</h3>
-    <p class="caption">Requests wait their turn. Every response reaches the subscriber in source order.</p>
+    <p class="caption">Files upload in selection order. Every completed upload reaches the subscriber.</p>
 
     <div class="result-display">
       @if (latestResponse.length > 0) {
         <p class="result-message">{{ latestResponse }}</p>
-        <p class="result-note">The latest display updates after each queued request completes.</p>
+        <p class="result-note">The latest display updates after each file finishes uploading.</p>
       } @else {
-        <p class="empty">No response has reached the subscriber yet.</p>
+        <p class="empty">No file has finished uploading yet.</p>
       }
     </div>
   </div>
@@ -106,7 +106,7 @@
     <h3>Subscriber log</h3>
 
     @if (outputEvents.length === 0) {
-      <p class="empty">The log fills as each queued request completes in order.</p>
+      <p class="empty">The log fills as each file upload completes in order.</p>
     } @else {
       <ul class="event-list compact">
         @for (event of outputEvents; track event.requestId) {

@@ -74,4 +74,5 @@ describe('AppComponent', () => {
 
     expect(compiled.querySelector('.controls h2')?.textContent).toContain('Operator: concatMap');
   });
+
 });
