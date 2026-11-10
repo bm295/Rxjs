@@ -1,7 +1,7 @@
 <main class="shell">
   <header>
     <h1>RxJS Visual Lab</h1>
-    <p>Choose an operator, then watch how values move through streams.</p>
+    <p>Choose a demo, then watch how values move through streams.</p>
   </header>
 
   @if (selectedFunction === null) {
@@ -64,6 +64,9 @@
           (resetDemo)="resetDemo()"
           (backToMenu)="backToMenu()"
         />
+      }
+      @case ('agentCoordination') {
+        <app-agent-coordination-demo-view (backToMenu)="backToMenu()" />
       }
       @case ('concatMap') {
         <app-concat-map-demo-view (backToMenu)="backToMenu()" />
