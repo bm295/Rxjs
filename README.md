@@ -32,12 +32,14 @@ Notes:
 - The dev server runs in watch mode and rebuilds when source files change.
 - If port `4200` is already in use, Angular CLI may prompt you to choose another port.
 
-RxJS Visual Lab is a standalone Angular app for learning how higher-order RxJS mapping operators handle competing outer emissions and inner streams. The app currently focuses on four interactive visualizations:
+RxJS Visual Lab is a standalone Angular app for learning how higher-order RxJS mapping operators handle competing outer emissions and inner streams. The app includes four operator visualizations and an agent coordination lab:
 
 - **`switchMap` typeahead** â€” simulates a user typing `COMPLETED`, starts a request for each typed value, and cancels older in-flight requests when the next value arrives.
 - **`mergeMap` concurrent typeahead** â€” simulates a user typing `COMPLETED`, starts a request for each typed value, and lets every request complete concurrently.
 - **`exhaustMap` rapid submit** â€” simulates repeated save-button clicks, accepts the first click while idle, and ignores later clicks until the current request finishes.
 - **`concatMap` multiple file uploads** - queues a batch of files and uploads each one only after the previous upload completes.
+
+- **AI Agent Coordination Lab** — compares sequential and parallel read-only lookups for a simulated refund recommendation.
 
 The UI shows each demo as a timeline: outer stream events, inner request progress, canceled or ignored work, and the final subscriber output.
 
@@ -112,6 +114,17 @@ Key files:
 - `src/app/demos/concat-map-demo.ts` builds the file batch stream and sequential `concatMap` upload pipeline.
 - `src/app/demo-views/concat-map-demo-view/` owns the upload configuration, state, subscription lifecycle, and visualization.
 - `src/app/app.component.*` only mounts the concatMap component and handles its back-to-menu event; editing this demo does not require changes to the app shell.
+
+### AI Agent Coordination Lab
+
+Open **AI Agent Coordination Lab** from the main menu, choose a scenario, and click **Run comparison**. Both runs use the same fixtures and read-only tools. The simulation runs in the browser without an API key or external service.
+
+| Scenario | Sequential | Parallel where possible |
+| --- | --- | --- |
+| Order ID and policy ID available at the start | Order lookup followed by policy lookup, about 1,000 ms | Both lookups start together, about 600 ms |
+| Policy ID available only from the order | Policy lookup waits for the order, about 1,000 ms | The same dependency forces the policy lookup to wait, about 1,000 ms |
+
+Each run has its own ID and records planning, dependency waits, tool activity, and validation. The result shows the recommendation and supporting policy clause, measured duration, tool-call count, and the two fixture-based quality checks.
 
 ## Build
 

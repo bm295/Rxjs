@@ -1,0 +1,63 @@
+<section class="card">
+  <p class="eyebrow">Reactive agent simulation</p>
+  <h2>AI Agent Coordination Lab</h2>
+  <p class="caption">Can this order be refunded? Compare two schedules using the same read-only tools.</p>
+
+  <div class="actions" role="group" aria-label="Scenario">
+    @for (scenario of scenarios; track scenario.id) {
+      <button type="button" [class.ghost]="selectedScenario !== scenario"
+        [attr.aria-pressed]="selectedScenario === scenario" (click)="selectScenario(scenario)">
+        {{ scenario.label }}
+      </button>
+    }
+  </div>
+
+  <p>
+    <strong>Order {{ selectedScenario.order.id }}</strong> ·
+    {{ selectedScenario.knownPolicyId
+      ? 'Both lookup inputs are available at the start.'
+      : 'The order lookup supplies the policy ID.' }}
+  </p>
+
+  <div class="actions">
+    <button type="button" (click)="compare()" [disabled]="running">Run comparison</button>
+    <button type="button" class="ghost" (click)="reset()" [disabled]="runs.length === 0">Reset</button>
+    <button type="button" class="ghost" (click)="backToMenu.emit()">Back to menu</button>
+  </div>
+</section>
+
+@if (runs.length) {
+  <div class="comparison">
+    @for (run of runs; track run.id) {
+      <section class="card">
+        <h3>{{ run.strategy === 'concatMap' ? 'Sequential' : 'Parallel where possible' }} · {{ run.strategy }}</h3>
+        <p class="caption">Run ID {{ run.id }}</p>
+        <ol class="timeline" aria-label="Run timeline">
+          @for (event of run.events; track $index) {
+            <li>
+              <span class="elapsed">{{ event.atMs }} ms</span>
+              <span><strong>{{ event.step }} · {{ event.status }}</strong><br>{{ event.detail }}</span>
+            </li>
+          }
+        </ol>
+
+        <div class="outcome" aria-live="polite">
+          @if (run.result; as result) {
+            <p><strong>{{ result.eligible ? 'Eligible for refund' : 'Ineligible for refund' }}</strong></p>
+            <p>{{ result.evidence }}</p>
+            <dl>
+              <div><dt>Duration</dt><dd>{{ result.durationMs }} ms</dd></div>
+              <div><dt>Tool calls</dt><dd>{{ result.toolCalls }}</dd></div>
+              <div><dt>Recommendation check</dt><dd>{{ result.checks.recommendation ? 'Pass' : 'Fail' }}</dd></div>
+              <div><dt>Citation check</dt><dd>{{ result.checks.citation ? 'Pass' : 'Fail' }}</dd></div>
+            </dl>
+          } @else if (run.error) {
+            <p>{{ run.error }}</p>
+          } @else {
+            <p>Running…</p>
+          }
+        </div>
+      </section>
+    }
+  </div>
+}

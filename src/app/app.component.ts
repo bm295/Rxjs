@@ -1,5 +1,6 @@
 import { Component, OnDestroy, ViewEncapsulation } from '@angular/core';
 import { Subscription } from 'rxjs';
+import { AgentCoordinationDemoViewComponent } from './demo-views/agent-coordination-demo-view/agent-coordination-demo-view.component';
 import { ConcatMapDemoViewComponent } from './demo-views/concat-map-demo-view/concat-map-demo-view.component';
 import { ExhaustMapDemoViewComponent } from './demo-views/exhaust-map-demo-view/exhaust-map-demo-view.component';
 import { MergeMapDemoViewComponent } from './demo-views/merge-map-demo-view/merge-map-demo-view.component';
@@ -24,10 +25,12 @@ import {
   createSwitchMapDemo
 } from './demos/switch-map-demo';
 
+type DemoSelection = DemoOperator | 'agentCoordination';
+
 type DemoVariant = 'primary' | 'secondary' | 'tertiary';
 
 interface DemoMenuItem {
-  operator: DemoOperator;
+  operator: DemoSelection;
   label: string;
   variant: DemoVariant;
 }
@@ -39,14 +42,15 @@ interface DemoMenuItem {
     SwitchMapDemoViewComponent,
     MergeMapDemoViewComponent,
     ExhaustMapDemoViewComponent,
-    ConcatMapDemoViewComponent
+    ConcatMapDemoViewComponent,
+    AgentCoordinationDemoViewComponent
   ],
   templateUrl: './app.component.html',
   styleUrl: './app.component.css',
   encapsulation: ViewEncapsulation.None
 })
 export class AppComponent implements OnDestroy {
-  protected selectedFunction: DemoOperator | null = null;
+  protected selectedFunction: DemoSelection | null = null;
   protected running = false;
   protected typedTerm = '';
   protected typingEvents: TypingEvent[] = [];
@@ -62,7 +66,8 @@ export class AppComponent implements OnDestroy {
     { operator: 'switchMap', label: 'switchMap', variant: 'primary' },
     { operator: 'mergeMap', label: 'mergeMap', variant: 'tertiary' },
     { operator: 'exhaustMap', label: 'exhaustMap', variant: 'secondary' },
-    { operator: 'concatMap', label: 'concatMap', variant: 'primary' }
+    { operator: 'concatMap', label: 'concatMap', variant: 'primary' },
+    { operator: 'agentCoordination', label: 'AI Agent Coordination Lab', variant: 'tertiary' }
   ];
 
   private readonly typingDelayMs = 280;
@@ -76,7 +81,7 @@ export class AppComponent implements OnDestroy {
       .join(', ');
   }
 
-  protected openDemo(operator: DemoOperator): void {
+  protected openDemo(operator: DemoSelection): void {
     this.selectedFunction = operator;
     this.resetDemo();
   }

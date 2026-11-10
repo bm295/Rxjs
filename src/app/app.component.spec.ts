@@ -1,4 +1,4 @@
-import { TestBed } from '@angular/core/testing';
+import { fakeAsync, TestBed, tick } from '@angular/core/testing';
 import { AppComponent } from './app.component';
 
 describe('AppComponent', () => {
@@ -74,5 +74,36 @@ describe('AppComponent', () => {
 
     expect(compiled.querySelector('.controls h2')?.textContent).toContain('Operator: concatMap');
   });
+
+  it('runs the agent comparison from the main menu and returns to it', fakeAsync(() => {
+    const fixture = TestBed.createComponent(AppComponent);
+    const app: HTMLElement = fixture.nativeElement;
+    const clickButton = (label: string) => {
+      const button = Array.from(app.querySelectorAll('button')).find(
+        (candidate) => candidate.textContent?.trim() === label
+      );
+      expect(button).toBeDefined();
+      button?.click();
+      fixture.detectChanges();
+    };
+
+    fixture.detectChanges();
+    clickButton('AI Agent Coordination Lab');
+    clickButton('Policy depends on the order');
+    clickButton('Run comparison');
+    expect(app.textContent).toContain('Policy lookup · waiting');
+    tick(1000);
+    fixture.detectChanges();
+
+    const outcomes = Array.from(app.querySelectorAll('.outcome'));
+    expect(outcomes.length).toBe(2);
+    for (const outcome of outcomes) {
+      expect(outcome.textContent).toContain('Ineligible for refund');
+      expect(outcome.textContent).toContain('R-07');
+    }
+
+    clickButton('Back to menu');
+    expect(app.textContent).toContain('Main menu');
+  }));
 
 });
